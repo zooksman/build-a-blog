@@ -15,10 +15,30 @@
 # limitations under the License.
 #
 import webapp2
+import cgi
+import jinja2
+import os
+from google.appengine.ext import db
+
+template_dir = os.path.join(os.path.dirname(__file__), "templates")
+jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir))
+
+class Handler(webapp2.RequestHandler):
+    """ A base RequestHandler class for our app.
+        The other handlers inherit form this one.
+    """
+
+    def renderError(self, error_code):
+        """ Sends an HTTP error code and a generic "oops!" message to the client. """
+
+        self.error(error_code)
+        self.response.write("Hoo boy that's an error.")
+
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        self.response.write('Hello world!')
+        self.render("main.html")
+        
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler)
