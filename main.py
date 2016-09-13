@@ -21,7 +21,16 @@ import os
 from google.appengine.ext import db
 
 template_dir = os.path.join(os.path.dirname(__file__), "templates")
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir))
+jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape = True)
+
+def render_str(template, **params):
+    t = jinja_env.get_template(template)
+    return t.render(params)
+
+class Post(db.Model):
+    title = db.StringProperty(required = True)
+    created = db.DateTimeProperty(auto_now_add = True)
+    content = db.TextProperty(required = True)
 
 class Handler(webapp2.RequestHandler):
     """ A base RequestHandler class for our app.
@@ -34,12 +43,40 @@ class Handler(webapp2.RequestHandler):
         self.error(error_code)
         self.response.write("Hoo boy that's an error.")
 
+class MainHandler(Handler):
+    def write(self, *a, **kw):
+        self.response.out.write(*a, **kw)
 
-class MainHandler(webapp2.RequestHandler):
+    def render_str(self, template, **params):
+        return render_str(template, **params)
+
+    def render(self, template, **kw):
+        self.write(self.render_str(template, **kw))
+
+class Index(Handler):
+	def get(self):
+		
+		t = jinja_env.get_template("front.html")
+        response = t.render()
+        self.response.write(response)
+
+class ListPosts(Handler):
     def get(self):
-        self.render("main.html")
+    	five_posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC LIMIT 5")
+    	five_posts = [five_posts]
+        t = jinja_env.get_template("list.html")
+        response = t.render(five_posts = five_posts)
+        self.response.write(response)
         
+class AddPost(Handler):
+	def post(self):
+		
+		t = jinja_env.get_template("create.html")
+        response = t.render()
+        self.response.write(response)
 
 app = webapp2.WSGIApplication([
-    ('/', MainHandler)
+	('/', Index),
+    ('/blog', ListPosts),
+    ('/newpost', AddPost)
 ], debug=True)
