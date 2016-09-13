@@ -32,18 +32,7 @@ class Post(db.Model):
     created = db.DateTimeProperty(auto_now_add = True)
     content = db.TextProperty(required = True)
 
-class Handler(webapp2.RequestHandler):
-    """ A base RequestHandler class for our app.
-        The other handlers inherit form this one.
-    """
-
-    def renderError(self, error_code):
-        """ Sends an HTTP error code and a generic "oops!" message to the client. """
-
-        self.error(error_code)
-        self.response.write("Hoo boy that's an error.")
-
-class MainHandler(Handler):
+class MainHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
 
@@ -53,28 +42,21 @@ class MainHandler(Handler):
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
 
-class Index(Handler):
+class Index(MainHandler):
 	def get(self):
 		
-		t = jinja_env.get_template("front.html")
-        response = t.render()
-        self.response.write(response)
+		self.render("front.html")
 
-class ListPosts(Handler):
+class ListPosts(MainHandler):
     def get(self):
     	five_posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC LIMIT 5")
     	five_posts = [five_posts]
-        t = jinja_env.get_template("list.html")
-        response = t.render(five_posts = five_posts)
-        self.response.write(response)
+        self.render("list.html", five_posts = five_posts)
         
-class AddPost(Handler):
+class AddPost(MainHandler):
 	def post(self):
 		
-		t = jinja_env.get_template("create.html")
-        response = t.render()
-        self.response.write(response)
-
+		self.render("create.html")
 app = webapp2.WSGIApplication([
 	('/', Index),
     ('/blog', ListPosts),
