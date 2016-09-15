@@ -1,1 +1,19 @@
 {% extends "base.html" %}
+{% block content %}
+<form action="/newpost" method="post">
+	<label>Title <br>
+		<input type="text" name="title"></input>
+		<p class="error">{{ title_error if title_error else "" }}</p>
+		<br>
+	</label>
+	<br>
+    <label>Art <br>
+        <textarea name="art"></textarea>
+        <p class="error">{{ art_error if art_error else "" }}</p>
+        <br>
+    </label>
+    <input type="submit" value="Submit Post"/>
+</form>
+<br>
+<div><a href="/blog">View all posts</a>
+{% endblock %}
